@@ -437,3 +437,13 @@ async function approve() {
   amount = ethers.utils.parseUnits(amount, decimals)
   await devcash.approve(awarderAddress,amount)
 }
+
+async function award(){
+	let hunter = document.getElementById("bountyHunter").value;
+	let name = document.getElementById("bountyName").value;
+	let description = document.getElementById("bountyDescription").value;
+	let amount = document.getElementById("bountyAmount").value;
+	amount = ethers.utils.parseUnits(amount, decimals)
+	await awarder.award(description,hunter,amount)
+
+}
