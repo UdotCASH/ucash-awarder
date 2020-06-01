@@ -78,6 +78,10 @@ let awarder
 let provider
 let signer
 
+let torus
+let torusWeb3
+let torusSigner
+
 let torusUserInfo
 
 const devcashABI = [
@@ -400,30 +404,50 @@ let devcash
 let decimals
 let symbol
 
-let eventLogs
-
 async function initialize(web3) {
-  await ethereum.enable()
-  provider = new ethers.providers.Web3Provider(web3.currentProvider)
-  let accounts = await provider.listAccounts()
-  signer = provider.getSigner(accounts[0])
+	console.log("reradsffsd")
+  //await ethereum.enable()
+  //let provider = new ethers.providers.Web3Provider(web3.currentProvider)
+  //let accounts = await provider.listAccounts()
+  //signer = provider.getSigner(accounts[0])
 
-  let EthBalance = ethers.utils.formatEther(await signer.getBalance())
 
-	awarder = new ethers.Contract(awarderAddress,awarderABI,signer)
-	devcash = new ethers.Contract(devcashAddress,devcashABI,signer)
 
-	decimals = await devcash.decimals()
-  symbol = await devcash.symbol()
-  await getBalance()
-  await getApproved()
-	await getAwarded()
-	await populateAwarded()
+  //let EthBalance = ethers.utils.formatEther(await signer.getBalance())
+
+
+
+	// torus = new Torus();
+	// await torus.init();
+	// await torus.login();
+	// await torus.ethereum.enable()
+ 	// torusWeb3 = new Web3(torus.provider);
+
+
+	torus = new DirectWebSdk({
+	 baseUrl: "http://localhost:8899/",
+	 GOOGLE_CLIENT_ID: "372001088800-bmpm4hbe8qon70bohfft8rfu5tioct92.apps.googleusercontent.com",
+	 proxyContractAddress: "0x4023d2a0D330bF11426B12C6144Cfb96B7fa6183", // details for test net
+	 network: "ropsten", // details for test net
+ });
+ await torus.init();
+ torusUserInfo = await torus.triggerLogin("google", "adevuyst");
+
+ // let torusProvider = new ethers.providers.Web3Provider(torus.provider)
+ // let torusAccounts = await torusProvider.listAccounts()
+ // torusSigner = torusProvider.getSigner(torusAccounts[0])
+	// awarder = new ethers.Contract(awarderAddress,awarderABI,torusSigner)
+	// devcash = new ethers.Contract(devcashAddress,devcashABI,torusSigner)
+ //
+	// decimals = await devcash.decimals()
+ //  symbol = await devcash.symbol()
+ //  await getBalance()
+ //  await getApproved()
 }
 
 async function getBalance(){
 
-  let balance = await devcash.balanceOf(signer._address)
+  let balance = await devcash.balanceOf(torusSigner._address)
 
 	balance = ethers.utils.formatUnits(balance,decimals)
 	balance = ethers.utils.commify(balance)
@@ -431,10 +455,10 @@ async function getBalance(){
 }
 
 async function getApproved(){
-	let approved = await devcash.allowance(signer._address, awarderAddress)
+	let approved = await devcash.allowance(torusSigner._address, awarderAddress)
 	approved = ethers.utils.formatUnits(approved,decimals)
 	approved = ethers.utils.commify(approved)
-	console.log(signer._address)
+	console.log(torusSigner._address)
 	console.log(approved)
 	document.getElementById("approvedLabel").innerHTML = "Approved: " + approved + " " + symbol
 
@@ -453,74 +477,5 @@ async function award(){
 	let amount = document.getElementById("bountyAmount").value;
 	amount = ethers.utils.parseUnits(amount, decimals)
 	await awarder.award(description,hunter,amount)
-}
 
-async function getAwarded() {
-	console.log("get Event Logs")
-	let topic = ethers.utils.id("awarded(address,address,string,uint256)");
-	let filter = {
-    address: "0x7DE09eE61Fd4c326098bE7C4C86b80408707DB9b",
-    fromBlock: 10000000,
-    toBlock: 11111111,
-    topics: [ topic ]
-	}
-
-	let result = await provider.getLogs(filter)
-
-	eventLogs = new Array()
-	for (n=0;n<result.length;n++){
-		let log = new Object()
-		let data = result[0].data
-		data = data.substring(2)
-		data = data.match(/.{1,64}/g)
-		for (j=0;j<6;j++){
-			data[j] = "0x" + data[j]
-		}
-		let descriptionData = ""
-		for (j=5;j<data.length;j++){
-			descriptionData += data[j]
-		}
-		let poster = "0x" + data[0].substring(26)
-		let hunter = "0x" + data[1].substring(26)
-		let amount = ethers.utils.formatUnits(ethers.utils.bigNumberify(data[3]),8)
-		let description = web3.toAscii(descriptionData)
-		log.poster = poster
-		log.hunter = hunter
-		log.amount = amount
-		log.description = description
-		eventLogs.push(log)
-	}
-}
-
-async function populateAwarded() {
-	for(let n=0;n<eventLogs.length;n++){
-		let log = eventLogs[n]
-		let row=document.createElement("tr");
-		cell1 = document.createElement("td");
-		cell2 = document.createElement("td");
-		cell3 = document.createElement("td");
-		cell4 = document.createElement("td");
-
-		let poster = log.poster
-		let hunter = log.hunter
-		let amount = log.amount + " " + symbol
-		let description = log.description
-
-		textnode1=document.createTextNode(poster);
-		textnode2=document.createTextNode(hunter);
-		textnode3=document.createTextNode(amount);
-		textnode4=document.createTextNode(description)
-
-		cell1.appendChild(textnode1);
-		cell2.appendChild(textnode2);
-		cell3.appendChild(textnode3);
-		cell4.appendChild(textnode4);
-
-		row.appendChild(cell1);
-		row.appendChild(cell2);
-		row.appendChild(cell3);
-		row.appendChild(cell4);
-
-		document.getElementById("BATable").appendChild(row);
-	}
 }
