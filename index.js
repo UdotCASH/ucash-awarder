@@ -465,7 +465,6 @@ async function getAwarded() {
 	}
 
 	let result = await provider.getLogs(filter)
-
 	eventLogs = new Array()
 	for (n=0;n<result.length;n++){
 		let log = new Object()
@@ -487,6 +486,7 @@ async function getAwarded() {
 		log.hunter = hunter
 		log.amount = amount
 		log.description = description
+		log.txHash = result[n].transactionHash
 		eventLogs.push(log)
 	}
 }
@@ -495,9 +495,9 @@ async function populateAwarded() {
 	for(let n=0;n<eventLogs.length;n++){
 		let log = eventLogs[n]
 		let row=document.createElement("tr");
-		cell1 = document.createElement("td");
+		cell1 = document.createElement("a");
 		cell2 = document.createElement("td");
-		cell3 = document.createElement("td");
+		cell3 = document.createElement("a");
 		cell4 = document.createElement("td");
 
 		let poster = log.poster
@@ -505,14 +505,15 @@ async function populateAwarded() {
 		let amount = log.amount + " " + symbol
 		let description = log.description
 
-		textnode1=document.createTextNode(poster);
+		cell1.innerHTML = poster + ""
+		cell1.href = "https://etherscan.io/address/" + poster
+		cell2.innerHTML = hunter + ""
+		cell2.href = "https://etherscan.io/address/" + hunter
 		textnode2=document.createTextNode(hunter);
-		textnode3=document.createTextNode(amount);
+		cell3.innerHTML = amount
+		cell3.href = "https://etherscan.io/tx/" + log.txHash
 		textnode4=document.createTextNode(description)
 
-		cell1.appendChild(textnode1);
-		cell2.appendChild(textnode2);
-		cell3.appendChild(textnode3);
 		cell4.appendChild(textnode4);
 
 		row.appendChild(cell1);
