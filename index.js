@@ -469,7 +469,7 @@ async function getAwarded() {
 	eventLogs = new Array()
 	for (n=0;n<result.length;n++){
 		let log = new Object()
-		let data = result[0].data
+		let data = result[n].data
 		data = data.substring(2)
 		data = data.match(/.{1,64}/g)
 		for (j=0;j<6;j++){
