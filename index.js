@@ -448,7 +448,6 @@ async function approve() {
 
 async function award(){
 	let hunter = document.getElementById("bountyHunter").value;
-	let name = document.getElementById("bountyName").value;
 	let description = document.getElementById("bountyDescription").value;
 	let amount = document.getElementById("bountyAmount").value;
 	amount = ethers.utils.parseUnits(amount, decimals)
