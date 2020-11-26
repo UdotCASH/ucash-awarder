@@ -403,6 +403,13 @@ let symbol
 let eventLogs
 
 async function initialize(web3) {
+	let devcashPersistent = new ethers.Contract(devcashAddress,devcashABI,persistentProvider)
+	decimals = await devcashPersistent.decimals()
+  symbol = await devcashPersistent.symbol()
+
+	await getAwarded()
+	await populateAwarded()
+
 	try{
   await ethereum.enable()
   provider = new ethers.providers.Web3Provider(web3.currentProvider)
@@ -414,15 +421,13 @@ async function initialize(web3) {
 	awarder = new ethers.Contract(awarderAddress,awarderABI,signer)
 	devcash = new ethers.Contract(devcashAddress,devcashABI,signer)
 
-	decimals = await devcash.decimals()
-  symbol = await devcash.symbol()
   await getBalance()
   await getApproved()
 } catch {
-	console.log("metamask not connected")
+	document.getElementById("balanceLabel").innerHTML = "metamask not connected"
+	document.getElementById("approvedLabel").innerHTML = ""
 }
-	await getAwarded()
-	await populateAwarded()
+
 }
 
 async function getBalance(){
