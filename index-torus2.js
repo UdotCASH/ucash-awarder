@@ -1,5 +1,3 @@
-
-
 const awarderABI = [
 	{
 		"constant": false,
@@ -73,13 +71,14 @@ const awarderABI = [
 		"type": "function"
 	}
 ]
-const awarderAddress = '0x7DE09eE61Fd4c326098bE7C4C86b80408707DB9b';
+const awarderAddress = "0x2b6046447FEDced0713F70776F51f8b9663fd65e"//'0x7DE09eE61Fd4c326098bE7C4C86b80408707DB9b';
 let awarder
 let provider
 let signer
 
 let torus
-let torusWeb3
+let torusProvider
+let torusProviderWeb3
 let torusSigner
 
 let torusUserInfo
@@ -399,55 +398,45 @@ const devcashABI = [
 		"type": "function"
 	}
 ]
-const devcashAddress = "0x0fca8Fdb0FB115A33BAadEc6e7A141FFC1bC7d5a"
+const devcashAddress = "0x0f54093364b396461AAdf85C015Db597AAb56203"//"0x0fca8Fdb0FB115A33BAadEc6e7A141FFC1bC7d5a"
 let devcash
 let decimals
 let symbol
 
 async function initialize(web3) {
-	console.log("reradsffsd")
-  //await ethereum.enable()
-  //let provider = new ethers.providers.Web3Provider(web3.currentProvider)
-  //let accounts = await provider.listAccounts()
-  //signer = provider.getSigner(accounts[0])
-
-
-
-  //let EthBalance = ethers.utils.formatEther(await signer.getBalance())
-
-
-
-	// torus = new Torus();
-	// await torus.init();
-	// await torus.login();
-	// await torus.ethereum.enable()
- 	// torusWeb3 = new Web3(torus.provider);
-
-
+	console.log("initialize")
 	torus = new DirectWebSdk({
-	 baseUrl: "http://localhost:8899/",
-	 GOOGLE_CLIENT_ID: "372001088800-bmpm4hbe8qon70bohfft8rfu5tioct92.apps.googleusercontent.com",
+	 baseUrl: "https://award-devcash-torus.surge.sh/",
+	 GOOGLE_CLIENT_ID: "946900817635-ge3ir1ptdum72ouird7a8mf03vo9ntk1.apps.googleusercontent.com",
 	 proxyContractAddress: "0x4023d2a0D330bF11426B12C6144Cfb96B7fa6183", // details for test net
 	 network: "ropsten", // details for test net
  });
- await torus.init();
- torusUserInfo = await torus.triggerLogin("google", "adevuyst");
+ await torus.init()
+ console.log(torus)
+ torusUserInfo = await torus.triggerLogin({
+  typeOfLogin: "google",
+  verifier: "google-tal",
+  clientId: "946900817635-ge3ir1ptdum72ouird7a8mf03vo9ntk1.apps.googleusercontent.com",
+});
+ console.log("torus user info")
+	provider = ethers.getDefaultProvider("ropsten")
+console.log("arelk")
+let torusWallet = new ethers.Wallet("0x" + torusUserInfo.privateKey, provider);
+ console.log(torusWallet)
+	awarder = new ethers.Contract(awarderAddress,awarderABI,torusWallet)
+	devcash = new ethers.Contract(devcashAddress,devcashABI,torusWallet)
+	console.log(awarder)
+	console.log(signer)
 
- // let torusProvider = new ethers.providers.Web3Provider(torus.provider)
- // let torusAccounts = await torusProvider.listAccounts()
- // torusSigner = torusProvider.getSigner(torusAccounts[0])
-	// awarder = new ethers.Contract(awarderAddress,awarderABI,torusSigner)
-	// devcash = new ethers.Contract(devcashAddress,devcashABI,torusSigner)
- //
-	// decimals = await devcash.decimals()
- //  symbol = await devcash.symbol()
- //  await getBalance()
- //  await getApproved()
+	decimals = await devcash.decimals()
+  symbol = await devcash.symbol()
+  await getBalance()
+  await getApproved()
 }
 
 async function getBalance(){
 
-  let balance = await devcash.balanceOf(torusSigner._address)
+  let balance = await devcash.balanceOf(torusUserInfo.publicAddress)
 
 	balance = ethers.utils.formatUnits(balance,decimals)
 	balance = ethers.utils.commify(balance)
@@ -455,11 +444,9 @@ async function getBalance(){
 }
 
 async function getApproved(){
-	let approved = await devcash.allowance(torusSigner._address, awarderAddress)
+	let approved = await devcash.allowance(torusUserInfo.publicAddress, awarderAddress)
 	approved = ethers.utils.formatUnits(approved,decimals)
 	approved = ethers.utils.commify(approved)
-	console.log(torusSigner._address)
-	console.log(approved)
 	document.getElementById("approvedLabel").innerHTML = "Approved: " + approved + " " + symbol
 
 }
@@ -472,7 +459,6 @@ async function approve() {
 
 async function award(){
 	let hunter = document.getElementById("bountyHunter").value;
-	let name = document.getElementById("bountyName").value;
 	let description = document.getElementById("bountyDescription").value;
 	let amount = document.getElementById("bountyAmount").value;
 	amount = ethers.utils.parseUnits(amount, decimals)

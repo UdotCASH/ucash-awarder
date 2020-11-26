@@ -1,3 +1,5 @@
+
+
 const awarderABI = [
 	{
 		"constant": false,
@@ -71,12 +73,14 @@ const awarderABI = [
 		"type": "function"
 	}
 ]
-const awarderAddress = "0x5e0d4c73B0aD0C4F785DCaB7A524861260277894"//"0xe1074d040de6a7ab526a45ef6439a68e64026f5a"//"0xf661555B1a18F9a2F965dDBc3Abe0Cd8a5EFfd3B"//'0x7DE09eE61Fd4c326098bE7C4C86b80408707DB9b';
+const awarderAddress = '0x7DE09eE61Fd4c326098bE7C4C86b80408707DB9b';
 let awarder
 let provider
 let signer
 
-let persistentProvider = new ethers.providers.JsonRpcProvider('https://mainnet.infura.io/v3/3fd6400b02264579ad009cdc6879dcaf')
+let torus
+let torusWeb3Provider
+let torusSigner
 
 let torusUserInfo
 
@@ -395,39 +399,55 @@ const devcashABI = [
 		"type": "function"
 	}
 ]
-const devcashAddress = "0x0fca8Fdb0FB115A33BAadEc6e7A141FFC1bC7d5a"//"0x0f54093364b396461AAdf85C015Db597AAb56203"//"0x92e52a1A235d9A103D970901066CE910AAceFD37"//"0x0fca8Fdb0FB115A33BAadEc6e7A141FFC1bC7d5a"
+const devcashAddress = "0x0fca8Fdb0FB115A33BAadEc6e7A141FFC1bC7d5a"
 let devcash
 let decimals
 let symbol
 
-let eventLogs
-
 async function initialize(web3) {
-	try{
-  await ethereum.enable()
-  provider = new ethers.providers.Web3Provider(web3.currentProvider)
-  let accounts = await provider.listAccounts()
-  signer = provider.getSigner(accounts[0])
+	console.log("reradsffsd")
+  //await ethereum.enable()
+  //let provider = new ethers.providers.Web3Provider(web3.currentProvider)
+  //let accounts = await provider.listAccounts()
+  //signer = provider.getSigner(accounts[0])
+  //let EthBalance = ethers.utils.formatEther(await signer.getBalance())
 
-  let EthBalance = ethers.utils.formatEther(await signer.getBalance())
 
-	awarder = new ethers.Contract(awarderAddress,awarderABI,signer)
-	devcash = new ethers.Contract(devcashAddress,devcashABI,signer)
+
+	torus = new Torus();
+	await torus.init();
+	await torus.login();
+	await torus.ethereum.enable()
+ 	torusWeb3Provider = new Web3(torus.provider);
+
+
+	// torus = new DirectWebSdk({
+	//  baseUrl: "http://localhost:8899/",
+	//  GOOGLE_CLIENT_ID: "372001088800-bmpm4hbe8qon70bohfft8rfu5tioct92.apps.googleusercontent.com",
+	//  proxyContractAddress: "0x4023d2a0D330bF11426B12C6144Cfb96B7fa6183", // details for test net
+	//  network: "ropsten", // details for test net
+ // });
+ //torusUserInfo = await torus.triggerLogin("google", "adevuyst");
+
+ let torusProvider = new ethers.providers.Web3Provider(torus.provider)
+ console.log(torusProvider)
+ let torusAccounts = await torusProvider.listAccounts()
+ torusSigner = torusProvider.getSigner(torusAccounts[0])
+ console.log(torusSigner)
+	awarder = new ethers.Contract(awarderAddress,awarderABI,torusSigner)
+	devcash = new ethers.Contract(devcashAddress,devcashABI,torusSigner)
+	console.log(awarder)
+	console.log(signer)
 
 	decimals = await devcash.decimals()
   symbol = await devcash.symbol()
   await getBalance()
   await getApproved()
-} catch {
-	console.log("metamask not connected")
-}
-	await getAwarded()
-	await populateAwarded()
 }
 
 async function getBalance(){
 
-  let balance = await devcash.balanceOf(signer._address)
+  let balance = await devcash.balanceOf(torusSigner._address)
 
 	balance = ethers.utils.formatUnits(balance,decimals)
 	balance = ethers.utils.commify(balance)
@@ -435,10 +455,10 @@ async function getBalance(){
 }
 
 async function getApproved(){
-	let approved = await devcash.allowance(signer._address, awarderAddress)
+	let approved = await devcash.allowance(torusSigner._address, awarderAddress)
 	approved = ethers.utils.formatUnits(approved,decimals)
 	approved = ethers.utils.commify(approved)
-	console.log(signer._address)
+	console.log(torusSigner._address)
 	console.log(approved)
 	document.getElementById("approvedLabel").innerHTML = "Approved: " + approved + " " + symbol
 
@@ -452,79 +472,10 @@ async function approve() {
 
 async function award(){
 	let hunter = document.getElementById("bountyHunter").value;
+	let name = document.getElementById("bountyName").value;
 	let description = document.getElementById("bountyDescription").value;
 	let amount = document.getElementById("bountyAmount").value;
 	amount = ethers.utils.parseUnits(amount, decimals)
 	await awarder.award(description,hunter,amount)
-}
 
-async function getAwarded() {
-	console.log("get Event Logs")
-	let topic = ethers.utils.id("awarded(address,address,string,uint256)");
-	let filter = {
-    address: awarderAddress,
-    fromBlock: 11330000,
-    toBlock: 99999999,
-    topics: [ topic ]
-	}
-
-	let result = await persistentProvider.getLogs(filter)	//get event logs of all instances of bounties awarded
-	eventLogs = new Array()
-	for (n=0;n<result.length;n++){
-		let log = new Object()
-		let data = result[n].data
-		data = data.substring(2)
-		data = data.match(/.{1,64}/g) //divide data from event log into 64 length sections
-		for (j=0;j<6;j++){
-			data[j] = "0x" + data[j]
-		}
-		let descriptionData = ""
-		for (j=5;j<data.length;j++){
-			descriptionData += data[j]
-		}
-		let poster = "0x" + data[0].substring(26)
-		let hunter = "0x" + data[1].substring(26)
-		let amount = ethers.utils.formatUnits(ethers.utils.bigNumberify(data[3]),8)
-		let description = web3.toAscii(descriptionData)
-		log.poster = poster
-		log.hunter = hunter
-		log.amount = amount
-		log.description = description
-		log.txHash = result[n].transactionHash
-		eventLogs.push(log)
-	}
-}
-
-async function populateAwarded() {
-	for(let n=0;n<eventLogs.length;n++){
-		let log = eventLogs[n]
-		let row=document.createElement("tr");
-		cell1 = document.createElement("a");
-		cell2 = document.createElement("td");
-		cell3 = document.createElement("a");
-		cell4 = document.createElement("td");
-
-		let poster = log.poster
-		let hunter = log.hunter
-		let amount = log.amount + " " + symbol
-		let description = log.description
-
-		cell1.innerHTML = poster + ""
-		cell1.href = "https://etherscan.io/address/" + poster
-		cell2.innerHTML = hunter + ""
-		cell2.href = "https://etherscan.io/address/" + hunter
-		textnode2=document.createTextNode(hunter);
-		cell3.innerHTML = amount
-		cell3.href = "https://etherscan.io/tx/" + log.txHash
-		textnode4=document.createTextNode(description)
-
-		cell4.appendChild(textnode4);
-
-		row.appendChild(cell1);
-		row.appendChild(cell2);
-		row.appendChild(cell3);
-		row.appendChild(cell4);
-
-		document.getElementById("BATable").appendChild(row);
-	}
 }
