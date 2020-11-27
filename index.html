@@ -22,14 +22,55 @@
     <meta charset="utf-8">
     <title></title>
   </head>
-  <body>
-    <h3>Devcash Balance</h3>
+  <style>
+    body {
+      background-color:  #010014
+      }
+      h3 {
+      color: rgba(242,241,255, 1);
+      font: Manrope;
+      font-weight: 400;
+  
+      }
+      label{
+        color: rgba(242,241,255, 1);
+      }
+      input{
+        background-color:  rgba(5, 1, 78, 0.75);
+        color:rgba(242,241,255, 1);
+        border: 1px solid gray;
+        height: 25px;
+      }
+      img{
+        height: 100px;
+      }
+      #panel{
+        background-color:  rgba(1,0,20,0.75);
+      }
+      table, th, td {
+        border: 1px solid rgba(103,92,255, 1);
+        color:rgba(255,255,255, 1);
+      }
+      button{
+        background-color:  rgba(255,255,255, 1);
+        border-radius:4px;
+        border:1px rgba(103,92,255, 1);
+        height: 25px;
+      }
+  </style>
+  <body background-color>
+    <div id="panel">
+      <img src="logo.png">
+      <h3>Devcash Balance</h3>
 
-    <label id="balanceLabel">Balance: </label><br>
-    <label id="approvedLabel">Approved: </label><br><br>
+      <label id="balanceLabel">Balance: </label><br>
+      <label id="approvedLabel">Approved: </label><br><br>
 
-    <input id="approveAmount" placeholder = "amount..."></input><button onclick="approve()">Approve</button><br><br>
+      <input id="approveAmount" placeholder = "amount..."></input><button onclick="approve()">Approve</button>
+      <br><br>
+    </div>
     <hr>
+    <div id="panel">
     <h3>Award Bounty</h3>
     <input id="bountyHunter" placeholder="bounty hunter..."></input> <br>
     <input id="bountyDescription" placeholder="description..."></input> <br>
@@ -49,8 +90,9 @@
       <tbody id="BATable">
       </tbody>
     </table>
+  </div>
     <script src="index.js"></script>
-
+  
   </body>
   <script>
     initialize(web3)
