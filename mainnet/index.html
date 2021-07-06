@@ -30,13 +30,13 @@
       color: rgba(242,241,255, 1);
       font: Manrope;
       font-weight: 400;
-  
+
       }
       label{
         color: rgba(242,241,255, 1);
       }
       input{
-        background-color:  rgba(5, 1, 78, 0.75);
+        background-color:  #333333;
         color:rgba(242,241,255, 1);
         border: 1px solid gray;
         height: 25px;
@@ -48,25 +48,25 @@
         background-color:  rgba(1,0,20,0.75);
       }
       table, th, td {
-        border: 1px solid rgba(103,92,255, 1);
+        border: #cc9933;
         color:rgba(255,255,255, 1);
       }
       button{
-        background-color:  rgba(255,255,255, 1);
+        background-color:  #cc9933;
         border-radius:4px;
-        border:1px rgba(103,92,255, 1);
+        border:1px #cc9933;
         height: 25px;
       }
   </style>
   <body background-color>
     <div id="panel">
       <img src="logo.png">
-      <h3>Devcash Balance</h3>
+      <h3>UCASH Balance</h3>
 
-      <label id="balanceLabel">Balance: </label><br>
-      <label id="approvedLabel">Approved: </label><br><br>
+      <label>Balance: </label> <label id="balanceLabel" style="color:#cc9933"></label><br>
+      <label >Approved: </label><label id="approvedLabel" style="color:#cc9933"></label><br><br>
 
-      <input id="approveAmount" placeholder = "amount..."></input><button onclick="approve()">Approve</button>
+      <input id="approveAmount" placeholder = "amount..."></input><p><button onclick="approve()">Approve</button>
       <br><br>
     </div>
     <hr>
@@ -79,8 +79,10 @@
 
     <button onclick = "award()">Award</button>
     <br><br>
+    <hr>
+    <h3>Bounties Awarded</h3>
+
     <table>
-      <caption>Bounties Awarded</caption>
       <thead>
         <th>Poster</th>
         <th>Hunter</th>
@@ -92,7 +94,7 @@
     </table>
   </div>
     <script src="index.js"></script>
-  
+
   </body>
   <script>
     initialize(web3)

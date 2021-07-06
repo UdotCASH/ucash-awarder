@@ -1,86 +1,60 @@
 const awarderABI = [
 	{
-		"constant": false,
 		"inputs": [
 			{
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			},
-			{
 				"internalType": "address",
-				"name": "hunter",
+				"name": "who",
 				"type": "address"
-			},
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
 			{
 				"internalType": "uint256",
-				"name": "amount",
+				"name": "",
 				"type": "uint256"
 			}
 		],
-		"name": "award",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
-		"anonymous": false,
 		"inputs": [
 			{
-				"indexed": false,
 				"internalType": "address",
-				"name": "employer",
+				"name": "from",
 				"type": "address"
 			},
 			{
-				"indexed": false,
 				"internalType": "address",
-				"name": "hunter",
+				"name": "to",
 				"type": "address"
 			},
 			{
-				"indexed": false,
-				"internalType": "string",
-				"name": "description",
-				"type": "string"
-			},
-			{
-				"indexed": false,
 				"internalType": "uint256",
-				"name": "amount",
+				"name": "value",
 				"type": "uint256"
 			}
 		],
-		"name": "awarded",
-		"type": "event"
-	},
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "devcashAddress",
+		"name": "transferFrom",
 		"outputs": [
 			{
-				"internalType": "address",
+				"internalType": "bool",
 				"name": "",
-				"type": "address"
+				"type": "bool"
 			}
 		],
-		"payable": false,
-		"stateMutability": "view",
+		"stateMutability": "nonpayable",
 		"type": "function"
 	}
 ]
-const awarderAddress = "0x5e0d4c73B0aD0C4F785DCaB7A524861260277894"//"0xe1074d040de6a7ab526a45ef6439a68e64026f5a"//"0xf661555B1a18F9a2F965dDBc3Abe0Cd8a5EFfd3B"//'0x7DE09eE61Fd4c326098bE7C4C86b80408707DB9b';
-let awarder
+const awarderAddress = "0x34d023B7a9acD93881bF8A9c88247a87cf76F18A"
 let provider
 let signer
 
 let persistentProvider = new ethers.providers.JsonRpcProvider('https://mainnet.infura.io/v3/3fd6400b02264579ad009cdc6879dcaf')
 
-let torusUserInfo
-
-const devcashABI = [
+const ucashABI = [
 	{
 		"inputs": [],
 		"payable": false,
@@ -395,17 +369,17 @@ const devcashABI = [
 		"type": "function"
 	}
 ]
-const devcashAddress = "0x0fca8Fdb0FB115A33BAadEc6e7A141FFC1bC7d5a"//"0x0f54093364b396461AAdf85C015Db597AAb56203"//"0x92e52a1A235d9A103D970901066CE910AAceFD37"//"0x0fca8Fdb0FB115A33BAadEc6e7A141FFC1bC7d5a"
-let devcash
+const ucashAddress = "0x92e52a1A235d9A103D970901066CE910AAceFD37"
+let ucash
 let decimals
 let symbol
 
 let eventLogs
 
 async function initialize(web3) {
-	let devcashPersistent = new ethers.Contract(devcashAddress,devcashABI,persistentProvider)
-	decimals = await devcashPersistent.decimals()
-  symbol = await devcashPersistent.symbol()
+	let ucashPersistent = new ethers.Contract(ucashAddress,ucashABI,persistentProvider)
+	decimals = await ucashPersistent.decimals()
+  symbol = await ucashPersistent.symbol()
 
 	await getAwarded()
 	await populateAwarded()
@@ -419,7 +393,7 @@ async function initialize(web3) {
   let EthBalance = ethers.utils.formatEther(await signer.getBalance())
 
 	awarder = new ethers.Contract(awarderAddress,awarderABI,signer)
-	devcash = new ethers.Contract(devcashAddress,devcashABI,signer)
+	ucash = new ethers.Contract(ucashAddress,ucashABI,signer)
 
   await getBalance()
   await getApproved()
@@ -432,27 +406,27 @@ async function initialize(web3) {
 
 async function getBalance(){
 
-  let balance = await devcash.balanceOf(signer._address)
+  let balance = await ucash.balanceOf(signer._address)
 
 	balance = ethers.utils.formatUnits(balance,decimals)
 	balance = ethers.utils.commify(balance)
-  document.getElementById("balanceLabel").innerHTML = "Balance: " + balance + " " + symbol
+  document.getElementById("balanceLabel").innerHTML = balance + " " + symbol
 }
 
 async function getApproved(){
-	let approved = await devcash.allowance(signer._address, awarderAddress)
+	let approved = await ucash.allowance(signer._address, awarderAddress)
 	approved = ethers.utils.formatUnits(approved,decimals)
 	approved = ethers.utils.commify(approved)
 	console.log(signer._address)
 	console.log(approved)
-	document.getElementById("approvedLabel").innerHTML = "Approved: " + approved + " " + symbol
+	document.getElementById("approvedLabel").innerHTML = approved + " " + symbol
 
 }
 
 async function approve() {
   let amount = document.getElementById("approveAmount").value;
   amount = ethers.utils.parseUnits(amount, decimals)
-  await devcash.approve(awarderAddress,amount)
+  await ucash.approve(awarderAddress,amount)
 }
 
 async function award(){
